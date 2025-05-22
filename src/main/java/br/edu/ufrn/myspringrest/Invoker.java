@@ -5,7 +5,6 @@ import java.beans.PropertyEditorManager;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -165,18 +164,16 @@ public class Invoker {
     }
 
 
-    public void invoke(HttpRequest request) throws RequestMethodNotFound, Exception {
+    public Object invoke(HttpRequest request) throws Exception {
         Method method = this.findMethod(request);
 
         Object controller = this.findController(method);
 
         ArrayList<Object> args = this.extractArgs(request, method);
 
-        logger.info("args: " + args);
-
-        method.getReturnType();
-
         Object response = method.invoke(controller, args.toArray());
+
+        return response;
     }
 
     public void register() throws Exception {
