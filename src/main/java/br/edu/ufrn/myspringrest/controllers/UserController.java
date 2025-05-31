@@ -16,26 +16,33 @@ import br.edu.ufrn.myspringrest.annotations.RestController;
 public class UserController {
     
     @RequestMapping(path = "/users")
-    public void retrieveUsers() {}
+    public User[] retrieveUsers() {
+        User[] users = new User[] {
+            new User("rary@gmail.com", "Rary", "Coringa", 26, true),
+            new User("emanuel@gmail.com", "Emanuel", "Coringa", 26, true)
+        };
+
+        return users;
+    }
 
     @RequestMapping(path = "/users/{id}")
     public void retrieveUser(@PathParam int id) {}
 
     @RequestMapping(path = "/users", method = HttpMethod.POST)
-    public Map<String, Object> createUser(
+    public User createUser(
         @BodyParam("email") String email,
         @BodyParam("first_name") String firstName,
         @BodyParam("last_name") String lastName,
         @BodyParam("age") int age,
         @BodyParam("staff") boolean staff
     ) {
-        Map<String, Object> user = new HashMap<String, Object>();
-
-        user.put("email", email);
-        user.put("first_name", firstName);
-        user.put("last_name", lastName);
-        user.put("age", age);
-        user.put("staff", staff);
+        User user = new User(
+            email,
+            firstName,
+            lastName,
+            age,
+            staff
+        );
 
         return user;
     }
