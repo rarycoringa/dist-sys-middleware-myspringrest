@@ -59,25 +59,29 @@ public class MySpringRestApp {
 
     }
     
-    public static void run(Class<?> app) throws Exception {
-        Invoker invoker = new Invoker(app.getPackage().getName());
-
-        invoker.register();
-
-        ServerRequestHandler server = new ServerRequestHandler();
-
-        logger.info(
-            "MySpringRest Server is running...\n"
-            + "Host: " + ServerRequestHandler.address.getHostAddress() + "\n"
-            + "Port: " + ServerRequestHandler.port + "\n"
-        );
-
-        while (true) {
-            Socket connection = server.accept();
-            new Thread(() -> handleConnection(
-                connection,
-                invoker
-            )).start();
+    public static void run(Class<?> app) {
+        try {
+            Invoker invoker = new Invoker(app.getPackage().getName());
+    
+            invoker.register();
+    
+            ServerRequestHandler server = new ServerRequestHandler();
+    
+            logger.info(
+                "MySpringRest Server is running...\n"
+                + "Host: " + ServerRequestHandler.address.getHostAddress() + "\n"
+                + "Port: " + ServerRequestHandler.port + "\n"
+            );
+    
+            while (true) {
+                Socket connection = server.accept();
+                new Thread(() -> handleConnection(
+                    connection,
+                    invoker
+                )).start();
+            }
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
         }
     }
 }
