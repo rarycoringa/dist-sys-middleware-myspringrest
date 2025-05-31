@@ -1,5 +1,6 @@
 package br.edu.ufrn.myspringrest;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -12,9 +13,7 @@ public class Marshaller {
         
         if (object == null) {
             encoded = "";
-        }
-
-        if (object.getClass().isArray()) {
+        } else if (object.getClass().isArray()) {
             encoded = new JSONArray(object).toString();
         } else {
             encoded = new JSONObject(object).toString();
@@ -24,6 +23,12 @@ public class Marshaller {
     }
 
     public static Map<String, Object> decode(String object) {
-        return new JSONObject(object).toMap();
+        if (object == null) {
+            object = "";
+        }
+
+        Map<String, Object> decoded = new JSONObject(object).toMap();
+
+        return decoded;
     }
 }

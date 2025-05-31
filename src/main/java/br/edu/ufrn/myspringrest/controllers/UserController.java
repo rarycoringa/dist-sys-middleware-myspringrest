@@ -47,10 +47,27 @@ public class UserController {
         return user;
     }
 
+    @RequestMapping(path = "/users/{id}", method = HttpMethod.PUT)
+    public User updateUser(
+        @PathParam int id,
+        @BodyParam("email") String email,
+        @BodyParam("first_name") String firstName,
+        @BodyParam("last_name") String lastName,
+        @BodyParam("age") int age,
+        @BodyParam("staff") boolean staff
+    ) {
+        User user = new User(
+            email,
+            firstName,
+            lastName,
+            age,
+            staff
+        );
+
+        return user;
+    }
+
     @RequestMapping(path = "/users/{id}", method = HttpMethod.DELETE)
     public void deleteUser(@PathParam int id) {}
-
-    @RequestMapping(path = "/users/{id}/more")
-    public void moreUser(@PathParam int id, @BodyParam("email") String email, @BodyParam("name") String name) {}
 
 }
