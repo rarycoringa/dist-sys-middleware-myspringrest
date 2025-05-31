@@ -2,6 +2,7 @@ package br.edu.ufrn.myspringrest;
 
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorManager;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import br.edu.ufrn.myspringrest.annotations.RestController;
 import br.edu.ufrn.myspringrest.annotations.params.BodyParam;
 import br.edu.ufrn.myspringrest.annotations.params.PathParam;
 import br.edu.ufrn.myspringrest.enums.HttpMethod;
+import br.edu.ufrn.myspringrest.exceptions.HttpException;
 import br.edu.ufrn.myspringrest.exceptions.RequestMethodNotFound;
 import br.edu.ufrn.myspringrest.models.HttpRequest;
 
@@ -42,12 +44,16 @@ public class Invoker {
         );
     }
 
-    private String getPathRegex(String path) {
+    private String getPathRegex(
+        String path
+    ) {
         return "^" + path.replaceAll("\\{[^/]+}", "([^/]+)") + "$";
     }
 
-
-    private boolean pathMatches(String requestMappingPath, String incomingPath) { 
+    private boolean pathMatches(
+        String requestMappingPath,
+        String incomingPath
+    ) { 
         String regex = this.getPathRegex(requestMappingPath);
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(incomingPath);
@@ -55,11 +61,17 @@ public class Invoker {
         return matcher.matches();
     }
 
-    private boolean httpMethodMatches(HttpMethod requestMappingMethod, HttpMethod incomingMethod) {
+    private boolean httpMethodMatches(
+        HttpMethod requestMappingMethod,
+        HttpMethod incomingMethod
+    ) {
         return requestMappingMethod.equals(incomingMethod);
     }
 
-    private Method matchesRequestMethod(HttpRequest request, Set<Method> foundMethods) throws RequestMethodNotFound {
+    private Method matchesRequestMethod(
+        HttpRequest request,
+        Set<Method> foundMethods
+    ) throws RequestMethodNotFound {
         Method matchedMethod = null;
         
         for (Method method : foundMethods) {
@@ -81,14 +93,15 @@ public class Invoker {
         }
 
         if (matchedMethod == null) {
-            throw new RequestMethodNotFound();
+            throw new RequestMethodNotFound("Resource not found");
         }
 
         return matchedMethod;
     }
 
-
-    private Method findMethod(HttpRequest request) throws RequestMethodNotFound {
+    private Method findMethod(
+        HttpRequest request
+    ) throws RequestMethodNotFound {
         Set<Method> methods = this.reflections.getMethodsAnnotatedWith(
             RequestMapping.class
         );
@@ -97,14 +110,19 @@ public class Invoker {
         return method;
     }
 
-    private Object findController(Method method) {
+    private Object findController(
+        Method method
+    ) {
         String controllerClassName = method.getDeclaringClass().getName();
         Object controller = this.controllers.get(controllerClassName);
 
         return controller;
     }
 
-    private Queue<String> getPathParamValues(Method method, String incomingPath) {
+    private Queue<String> getPathParamValues(
+        Method method,
+        String incomingPath
+    ) {
         String requestMappingPath = method.getAnnotation(RequestMapping.class).path();
 
         String regex = this.getPathRegex(requestMappingPath);
@@ -123,7 +141,10 @@ public class Invoker {
         return pathValues;
     }
 
-    private ArrayList<Object> extractArgs(HttpRequest request, Method method) {
+    private ArrayList<Object> extractArgs(
+        HttpRequest request,
+        Method method
+    ) throws IllegalArgumentException{
         Parameter[] parameters = method.getParameters();
         
         Queue<String> pathValues = this.getPathParamValues(method, request.getPath());
@@ -163,15 +184,40 @@ public class Invoker {
         return args;
     }
 
+    public Object invoke(HttpRequest request) throws HttpException {
+        Method method;
 
-    public Object invoke(HttpRequest request) throws Exception {
-        Method method = this.findMethod(request);
+        try {
+            method = this.findMethod(request);
+        } catch (RequestMethodNotFound exception) {
+            throw new HttpException(404, "Not Found", exception.getMessage());
+        }
 
         Object controller = this.findController(method);
 
-        ArrayList<Object> args = this.extractArgs(request, method);
+        ArrayList<Object> args;
 
-        Object response = method.invoke(controller, args.toArray());
+        try {
+            args = this.extractArgs(request, method);
+        } catch (IllegalArgumentException exception) {
+            throw new HttpException(400, "Bad Request", exception.getLocalizedMessage());
+        }
+
+        Object response;
+
+        try {
+            response = method.invoke(controller, args.toArray());
+        } catch (InvocationTargetException exception) {
+            Throwable cause = exception.getCause();
+
+            if (cause instanceof HttpException) {
+                throw (HttpException) cause;
+            } else {
+                throw new HttpException(500, "Internal Server Error", "Unexpected server error: " + cause.getMessage());
+            }
+        } catch (Exception exception) {
+            throw new HttpException(500, "Internal Server Error", "Unexpected server error: " + exception.getMessage());
+        }
 
         return response;
     }
