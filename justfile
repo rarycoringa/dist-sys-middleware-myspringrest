@@ -7,5 +7,5 @@ build:
 test:
     mvn test
 
-run: 
+run: build
     mvn exec:java -Dexec.mainClass="br.edu.ufrn.myspringrest.App"

@@ -7,6 +7,12 @@ import org.json.JSONObject;
 public class Marshaller {
 
     public static String encode(Object object) {
+        if (object == null) {
+            return "";
+        }
+
+        
+
         return new JSONObject(object).toString();
     }
 

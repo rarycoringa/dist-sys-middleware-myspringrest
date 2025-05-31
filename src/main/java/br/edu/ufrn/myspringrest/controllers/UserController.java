@@ -5,6 +5,7 @@ import br.edu.ufrn.myspringrest.annotations.params.PathParam;
 import br.edu.ufrn.myspringrest.enums.HttpMethod;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import br.edu.ufrn.myspringrest.annotations.RequestMapping;
 import br.edu.ufrn.myspringrest.annotations.RestController;
@@ -21,13 +22,23 @@ public class UserController {
     public void retrieveUser(@PathParam int id) {}
 
     @RequestMapping(path = "/users", method = HttpMethod.POST)
-    public void createUser(
+    public Map<String, Object> createUser(
         @BodyParam("email") String email,
         @BodyParam("first_name") String firstName,
         @BodyParam("last_name") String lastName,
         @BodyParam("age") int age,
         @BodyParam("staff") boolean staff
-    ) {}
+    ) {
+        Map<String, Object> user = new HashMap<String, Object>();
+
+        user.put("email", email);
+        user.put("first_name", firstName);
+        user.put("last_name", lastName);
+        user.put("age", age);
+        user.put("staff", staff);
+
+        return user;
+    }
 
     @RequestMapping(path = "/users/{id}", method = HttpMethod.DELETE)
     public void deleteUser(@PathParam int id) {}

@@ -9,7 +9,7 @@ public class HttpRequest {
     private String path;
     private String version;
     private Map<String, String> headers;
-    private String body;
+    private Map<String, Object> body;
 
     public HttpRequest() {}
 
@@ -18,7 +18,7 @@ public class HttpRequest {
         String path,
         String version,
         Map<String, String> headers,
-        String body
+        Map<String, Object> body
     ) {
         this.method = method;
         this.path = path;
@@ -59,11 +59,11 @@ public class HttpRequest {
         this.headers = headers;
     }
 
-    public String getBody() {
+    public Map<String, Object> getBody() {
         return this.body;
     }
 
-    public void setBody(String body) {
+    public void setBody(Map<String, Object> body) {
         this.body = body;
     }
     

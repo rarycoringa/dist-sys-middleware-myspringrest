@@ -92,7 +92,15 @@ public class ServerRequestHandler {
                     parts -> parts[1].trim()
                 ));
 
-            int contentLength = Integer.valueOf(headers.get("content-length"));
+            int contentLength;
+            
+            String contentLengthString = headers.get("content-length");
+
+            if (contentLengthString != null)
+                contentLength = Integer.valueOf(contentLengthString);
+            else {
+                contentLength = 0;
+            }
 
             char[] bodyChars = new char[contentLength];
 
@@ -100,7 +108,15 @@ public class ServerRequestHandler {
                 in.read(bodyChars);
             }
 
-            String body = new String(bodyChars);
+            String bodyString = new String(bodyChars);
+
+            Map<String, Object> body;
+
+            if (bodyString != null && !bodyString.isEmpty()) {
+                body = Marshaller.decode(bodyString);
+            } else {
+                body = new HashMap<String, Object>();
+            }
 
             httpRequest = new HttpRequest(
                 method,
@@ -134,10 +150,12 @@ public class ServerRequestHandler {
         
         headers.put("Connection", "closed");
         
-        headers.put("Content-Type", "application/json");
+        if (!body.isEmpty()) {
+            headers.put("Content-Type", "application/json");
+        }
         
         String contentLenght = String.valueOf(body.getBytes().length);
-        headers.put("Content-Lenght", contentLenght);
+        headers.put("Content-Length", contentLenght);
 
         HttpResponse httpResponse = new HttpResponse(
             statusCode,

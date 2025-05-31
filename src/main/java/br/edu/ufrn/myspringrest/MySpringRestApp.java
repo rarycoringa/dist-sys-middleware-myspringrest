@@ -66,6 +66,12 @@ public class MySpringRestApp {
 
         ServerRequestHandler server = new ServerRequestHandler();
 
+        logger.info(
+            "MySpringRest Server is running...\n"
+            + "Host: " + ServerRequestHandler.address.getHostAddress() + "\n"
+            + "Port: " + ServerRequestHandler.port + "\n"
+        );
+
         while (true) {
             Socket connection = server.accept();
             new Thread(() -> handleConnection(

@@ -144,11 +144,11 @@ public class Invoker {
     private ArrayList<Object> extractArgs(
         HttpRequest request,
         Method method
-    ) throws IllegalArgumentException{
+    ) throws IllegalArgumentException {
         Parameter[] parameters = method.getParameters();
         
         Queue<String> pathValues = this.getPathParamValues(method, request.getPath());
-        Map<String, Object> body = Marshaller.decode(request.getBody());
+        Map<String, Object> body = request.getBody();
 
         ArrayList<Object> args = new ArrayList<Object>();
         
@@ -172,10 +172,18 @@ public class Invoker {
                 editor.setAsText(valueStr);
                 value = editor.getValue();
 
+                if (value == null) {
+                    throw new IllegalArgumentException("Required path parameter missing or invalid: " + parameter.getName());
+                }
+
             } else if (parameter.isAnnotationPresent(BodyParam.class)) {
                 BodyParam annotation = parameter.getAnnotation(BodyParam.class);
                 String key = annotation.value();
                 value = body.get(key);
+
+                if (value == null) {
+                    throw new IllegalArgumentException("Required body parameter missing: " + key);
+                }
             }
 
             args.add(value);
